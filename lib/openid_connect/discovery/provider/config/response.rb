@@ -6,7 +6,7 @@ module OpenIDConnect
           include ActiveModel::Validations, AttrRequired, AttrOptional
 
           # DEBUG: Log para confirmar se fork está sendo usado
-          Rails.logger.info("🔍 TIFLUX FORK: openid_connect carregado!") if defined?(Rails)
+          puts("🔍 TIFLUX FORK: openid_connect carregado!")
 
           cattr_accessor :metadata_attributes
           attr_reader :raw
