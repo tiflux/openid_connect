@@ -22,6 +22,13 @@ module OpenIDConnect
       end
 
       def verify!(expected = {})
+        puts "#######"
+        puts "#######"
+        puts "VERIFYING ID TOKEN"
+        puts iss
+        puts expected[:issuer]
+        puts "#######"
+        puts "#######"
         raise ExpiredToken.new('Invalid ID token: Expired token') unless exp.to_i > Time.now.to_i
         raise InvalidIssuer.new('Invalid ID token: Issuer does not match') unless iss == expected[:issuer]
         raise InvalidNonce.new('Invalid ID Token: Nonce does not match') unless nonce == expected[:nonce]

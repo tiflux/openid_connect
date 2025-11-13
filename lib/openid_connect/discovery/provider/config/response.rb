@@ -5,9 +5,6 @@ module OpenIDConnect
         class Response
           include ActiveModel::Validations, AttrRequired, AttrOptional
 
-          # DEBUG: Log para confirmar se fork está sendo usado
-          puts("🔍 TIFLUX FORK: openid_connect carregado!")
-
           cattr_accessor :metadata_attributes
           attr_reader :raw
           attr_accessor :expected_issuer
