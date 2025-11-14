@@ -45,6 +45,8 @@ module OpenIDConnect
         %r{^https://login\.microsoftonline\.com/([0-9a-f\-]{36})/v\d+\.\d+$},  
         %r{^https://sts\.windows\.net/([0-9a-f\-]{36})/$}                      
       ]
+      puts "######"
+      puts issuer
 
       tenant_id = nil
       patterns.each do |pattern|
@@ -54,7 +56,7 @@ module OpenIDConnect
           break
         end
       end
-
+      puts tenant_id
       return false unless tenant_id
 
       if options[:allow_any_tenant]

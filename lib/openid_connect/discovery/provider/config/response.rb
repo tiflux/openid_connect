@@ -100,9 +100,6 @@ module OpenIDConnect
             return unless expected_issuer.present?
 
             unless microsoft_issuer_valid?(issuer, expected_issuer)
-              puts "#####"
-              puts "#####"
-              puts "Entrei aqui?"
               if OpenIDConnect.validate_discovery_issuer
                 errors.add :issuer, 'mismatch'
               else
