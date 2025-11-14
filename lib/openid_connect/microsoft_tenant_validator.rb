@@ -10,7 +10,6 @@ module OpenIDConnect
       when 'common'
         validate_microsoft_common_issuer(actual_issuer)
       else
-        # Para casos não reconhecidos, usar validação padrão exata
         actual_issuer == expected_issuer
       end
     end
@@ -33,10 +32,9 @@ module OpenIDConnect
     end
 
     def validate_microsoft_common_issuer(issuer)
-      # Patterns para validar Microsoft common endpoint
       patterns = [
         %r{^https://login\.microsoftonline\.com/([0-9a-f\-]{36})/v\d+\.\d+$},           
-        %r{^https://login\.microsoftonline\.com/common/v\d+\.\d+$},                                    # Placeholder (discovery)
+        %r{^https://login\.microsoftonline\.com/common/v\d+\.\d+$},                                    
         %r{^https://sts\.windows\.net/([0-9a-f\-]{36})/$}                              
       ]
 
