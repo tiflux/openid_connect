@@ -80,14 +80,7 @@ module OpenIDConnect
           end
 
           def validate!
-            puts "### DEBUG validate! ###"
-            puts "Issuer: #{issuer.inspect}"
-            puts "Valid?: #{valid?}"
-
-            unless valid?
-              puts "Validation errors: #{errors.full_messages.inspect}"
-              raise ValidationFailed.new(self)
-            end
+            valid? or raise ValidationFailed.new(self)
           end
 
           def jwks
@@ -126,19 +119,9 @@ module OpenIDConnect
             issuer_key = normalized.key?('issuer') ? 'issuer' : :issuer
             issuer_value = normalized[issuer_key]
 
-            puts "### DEBUG normalize_microsoft_placeholders ###"
-            puts "Hash keys: #{normalized.keys.inspect}"
-            puts "Issuer key: #{issuer_key.inspect}"
-            puts "Issuer value: #{issuer_value.inspect}"
-
             # Se é um endpoint Microsoft com placeholder, substituir por common
             if issuer_value&.include?('{tenantid}')
-              puts "### Normalizing Microsoft Placeholder ###"
-              puts "Original: #{issuer_value}"
-
               normalized[issuer_key] = issuer_value.gsub('{tenantid}', 'common')
-
-              puts "Normalized: #{normalized[issuer_key]}"
             end
 
             normalized
