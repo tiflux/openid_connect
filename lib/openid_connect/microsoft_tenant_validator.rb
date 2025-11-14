@@ -9,12 +9,9 @@ module OpenIDConnect
 
       case microsoft_tenant.to_s.downcase
       when 'common'
-        validate_microsoft_issuer(actual_issuer, allow_any_tenant: true)
-      when 'organizations'
-        validate_microsoft_issuer(actual_issuer, organizations_only: true)
-      when 'consumers'
-        validate_microsoft_issuer(actual_issuer, consumers_only: true)
+        validate_microsoft_common_issuer(actual_issuer)
       else
+        # Para casos não reconhecidos, usar validação padrão exata
         actual_issuer == expected_issuer
       end
     end
@@ -26,10 +23,6 @@ module OpenIDConnect
 
       if expected_issuer.include?('/common/')
         'common'
-      elsif expected_issuer.include?('/organizations/')
-        'organizations'
-      elsif expected_issuer.include?('/consumers/')
-        'consumers'
       else
         nil
       end
@@ -40,34 +33,22 @@ module OpenIDConnect
       issuer.include?('microsoftonline.com') || issuer.include?('sts.windows.net')
     end
 
-    def validate_microsoft_issuer(issuer, options = {})
+    def validate_microsoft_common_issuer(issuer)
+      # Patterns para validar Microsoft common endpoint
       patterns = [
-        %r{^https://login\.microsoftonline\.com/([0-9a-f\-]{36})/v\d+\.\d+$},  
-        %r{^https://sts\.windows\.net/([0-9a-f\-]{36})/$}                      
+        %r{^https://login\.microsoftonline\.com/([0-9a-f\-]{36})/v\d+\.\d+$},           # UUID real (token validation)
+        %r{^https://login\.microsoftonline\.com/\{tenantid\}/v\d+\.\d+$},               # Placeholder (discovery)
+        %r{^https://sts\.windows\.net/([0-9a-f\-]{36})/$}                              # Legacy v1.0
       ]
-      puts "######"
-      puts issuer
 
-      tenant_id = nil
-      patterns.each do |pattern|
-        match = pattern.match(issuer)
-        if match
-          tenant_id = match[1]
-          break
-        end
-      end
-      puts tenant_id
-      return false unless tenant_id
+      puts "### Validating Microsoft Common Issuer ###"
+      puts "Issuer: #{issuer}"
 
-      if options[:allow_any_tenant]
-        true
-      elsif options[:organizations_only]
-        tenant_id != '9188040d-6c67-4c5b-b112-36a304b66dad'
-      elsif options[:consumers_only]
-        tenant_id == '9188040d-6c67-4c5b-b112-36a304b66dad'
-      else
-        false
-      end
+      # Para common, aceitar qualquer issuer Microsoft válido (placeholder ou UUID real)
+      valid = patterns.any? { |pattern| pattern.match?(issuer) }
+      puts "Valid: #{valid}"
+
+      valid
     end
 
   end
