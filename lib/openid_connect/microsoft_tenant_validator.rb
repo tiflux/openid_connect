@@ -5,6 +5,7 @@ module OpenIDConnect
       return actual_issuer == expected_issuer unless is_microsoft_issuer?(expected_issuer)
 
       microsoft_tenant = detect_tenant_type_from_expected_issuer(expected_issuer)
+      puts microsoft_tenant
 
       case microsoft_tenant.to_s.downcase
       when 'common'

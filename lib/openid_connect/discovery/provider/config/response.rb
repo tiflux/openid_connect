@@ -97,14 +97,12 @@ module OpenIDConnect
           private
 
           def validate_issuer_matching
-            puts "############"
-            puts "ISSUER: #{issuer}"
-            puts "EXPECTED ISSUER: #{expected_issuer}"
-            puts "############"
-
             return unless expected_issuer.present?
 
             unless microsoft_issuer_valid?(issuer, expected_issuer)
+              puts "#####"
+              puts "#####"
+              puts "Entrei aqui?"
               if OpenIDConnect.validate_discovery_issuer
                 errors.add :issuer, 'mismatch'
               else
