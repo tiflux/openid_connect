@@ -27,10 +27,16 @@ module OpenIDConnect
         puts "VERIFYING ID TOKEN"
         puts iss
         puts expected[:issuer]
+        puts expected[:microsoft_tenant] if expected[:microsoft_tenant]
         puts "#######"
         puts "#######"
+
         raise ExpiredToken.new('Invalid ID token: Expired token') unless exp.to_i > Time.now.to_i
-        raise InvalidIssuer.new('Invalid ID token: Issuer does not match') unless iss == expected[:issuer]
+
+        unless microsoft_tenant_issuer_valid?(iss, expected[:issuer], expected[:microsoft_tenant])
+          raise InvalidIssuer.new('Invalid ID token: Issuer does not match')
+        end
+
         raise InvalidNonce.new('Invalid ID Token: Nonce does not match') unless nonce == expected[:nonce]
 
         # aud(ience) can be a string or an array of strings
@@ -67,6 +73,54 @@ module OpenIDConnect
       def left_half_hash_of(string, hash_length)
         digest = OpenSSL::Digest.new("SHA#{hash_length}").digest string
         Base64.urlsafe_encode64 digest[0, hash_length / (2 * 8)], padding: false
+      end
+
+      def microsoft_tenant_issuer_valid?(actual_issuer, expected_issuer, microsoft_tenant = nil)
+        return actual_issuer == expected_issuer unless microsoft_tenant && is_microsoft_issuer?(expected_issuer)
+
+        case microsoft_tenant.to_s.downcase
+        when 'common'
+          validate_microsoft_issuer(actual_issuer, allow_any_tenant: true)
+        when 'organizations'
+          validate_microsoft_issuer(actual_issuer, organizations_only: true)
+        when 'consumers'
+          validate_microsoft_issuer(actual_issuer, consumers_only: true)
+        else
+          actual_issuer == expected_issuer
+        end
+      end
+
+      def is_microsoft_issuer?(issuer)
+        return false unless issuer
+        issuer.include?('microsoftonline.com') || issuer.include?('sts.windows.net')
+      end
+
+      def validate_microsoft_issuer(issuer, options = {})
+        patterns = [
+          %r{^https://login\.microsoftonline\.com/([0-9a-f\-]{36})/v\d+\.\d+$},  # Futuro-compatível
+          %r{^https://sts\.windows\.net/([0-9a-f\-]{36})/$}                      # Legacy v1.0
+        ]
+
+        tenant_id = nil
+        patterns.each do |pattern|
+          match = pattern.match(issuer)
+          if match
+            tenant_id = match[1]
+            break
+          end
+        end
+
+        return false unless tenant_id
+
+        if options[:allow_any_tenant]
+          true
+        elsif options[:organizations_only]
+          tenant_id != '9188040d-6c67-4c5b-b112-36a304b66dad'
+        elsif options[:consumers_only]
+          tenant_id == '9188040d-6c67-4c5b-b112-36a304b66dad'
+        else
+          false
+        end
       end
 
       class << self
