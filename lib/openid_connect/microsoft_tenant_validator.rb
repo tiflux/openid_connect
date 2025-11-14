@@ -37,6 +37,7 @@ module OpenIDConnect
       # Patterns para validar Microsoft common endpoint
       patterns = [
         %r{^https://login\.microsoftonline\.com/([0-9a-f\-]{36})/v\d+\.\d+$},           # UUID real (token validation)
+        %r{^https://login\.microsoftonline\.com/common/v\d+\.\d+$},                     # Common endpoint (discovery)
         %r{^https://login\.microsoftonline\.com/\{tenantid\}/v\d+\.\d+$},               # Placeholder (discovery)
         %r{^https://sts\.windows\.net/([0-9a-f\-]{36})/$}                              # Legacy v1.0
       ]
@@ -44,9 +45,13 @@ module OpenIDConnect
       puts "### Validating Microsoft Common Issuer ###"
       puts "Issuer: #{issuer}"
 
-      # Para common, aceitar qualquer issuer Microsoft válido (placeholder ou UUID real)
-      valid = patterns.any? { |pattern| pattern.match?(issuer) }
-      puts "Valid: #{valid}"
+      # Para common, aceitar qualquer issuer Microsoft válido (placeholder, common, ou UUID real)
+      valid = patterns.any? { |pattern|
+        match = pattern.match?(issuer)
+        puts "Pattern #{pattern.inspect} matches: #{match}"
+        match
+      }
+      puts "Final Valid: #{valid}"
 
       valid
     end
