@@ -61,10 +61,13 @@ module OpenIDConnect
           validates :issuer, with: :validate_issuer_matching
 
           def initialize(hash)
+            # Normalizar Microsoft placeholders antes de processar
+            normalized_hash = normalize_microsoft_placeholders(hash)
+
             (required_attributes + optional_attributes).each do |key|
-              self.send "#{key}=", hash[key]
+              self.send "#{key}=", normalized_hash[key]
             end
-            @raw = hash
+            @raw = hash  # Manter raw original para referência
           end
 
           def as_json(options = {})
@@ -106,6 +109,23 @@ module OpenIDConnect
                 OpenIDConnect.logger.warn 'ignoring issuer mismach.'
               end
             end
+          end
+
+          def normalize_microsoft_placeholders(hash)
+            # Fazer uma cópia do hash para não modificar o original
+            normalized = hash.dup
+
+            # Se é um endpoint Microsoft com placeholder, substituir por common
+            if normalized['issuer']&.include?('{tenantid}')
+              puts "### Normalizing Microsoft Placeholder ###"
+              puts "Original: #{normalized['issuer']}"
+
+              normalized['issuer'] = normalized['issuer'].gsub('{tenantid}', 'common')
+
+              puts "Normalized: #{normalized['issuer']}"
+            end
+
+            normalized
           end
         end
       end
