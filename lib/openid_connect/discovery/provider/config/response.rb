@@ -3,7 +3,7 @@ module OpenIDConnect
     module Provider
       class Config
         class Response
-          include ActiveModel::Validations, AttrRequired, AttrOptional
+          include ActiveModel::Validations, AttrRequired, AttrOptional, MicrosoftTenantValidator
 
           cattr_accessor :metadata_attributes
           attr_reader :raw
@@ -101,7 +101,10 @@ module OpenIDConnect
             puts "ISSUER: #{issuer}"
             puts "EXPECTED ISSUER: #{expected_issuer}"
             puts "############"
-            if expected_issuer.present? && issuer != expected_issuer
+
+            return unless expected_issuer.present?
+
+            unless microsoft_issuer_valid?(issuer, expected_issuer)
               if OpenIDConnect.validate_discovery_issuer
                 errors.add :issuer, 'mismatch'
               else

@@ -16,6 +16,7 @@ require 'rack/oauth2'
 require 'rack/oauth2/server/authorize/error_with_connect_ext'
 require 'rack/oauth2/server/authorize/request_with_connect_params'
 require 'rack/oauth2/server/id_token_response'
+require 'openid_connect/microsoft_tenant_validator'
 
 module OpenIDConnect
   VERSION = ::File.read(
