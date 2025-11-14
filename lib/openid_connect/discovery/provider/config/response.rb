@@ -80,7 +80,14 @@ module OpenIDConnect
           end
 
           def validate!
-            valid? or raise ValidationFailed.new(self)
+            puts "### DEBUG validate! ###"
+            puts "Issuer: #{issuer.inspect}"
+            puts "Valid?: #{valid?}"
+
+            unless valid?
+              puts "Validation errors: #{errors.full_messages.inspect}"
+              raise ValidationFailed.new(self)
+            end
           end
 
           def jwks
@@ -115,14 +122,23 @@ module OpenIDConnect
             # Fazer uma cópia do hash para não modificar o original
             normalized = hash.dup
 
+            # Tentar tanto string quanto symbol keys
+            issuer_key = normalized.key?('issuer') ? 'issuer' : :issuer
+            issuer_value = normalized[issuer_key]
+
+            puts "### DEBUG normalize_microsoft_placeholders ###"
+            puts "Hash keys: #{normalized.keys.inspect}"
+            puts "Issuer key: #{issuer_key.inspect}"
+            puts "Issuer value: #{issuer_value.inspect}"
+
             # Se é um endpoint Microsoft com placeholder, substituir por common
-            if normalized['issuer']&.include?('{tenantid}')
+            if issuer_value&.include?('{tenantid}')
               puts "### Normalizing Microsoft Placeholder ###"
-              puts "Original: #{normalized['issuer']}"
+              puts "Original: #{issuer_value}"
 
-              normalized['issuer'] = normalized['issuer'].gsub('{tenantid}', 'common')
+              normalized[issuer_key] = issuer_value.gsub('{tenantid}', 'common')
 
-              puts "Normalized: #{normalized['issuer']}"
+              puts "Normalized: #{normalized[issuer_key]}"
             end
 
             normalized
